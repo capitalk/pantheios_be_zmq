@@ -97,8 +97,10 @@ class be_zmq_context
 #ifdef DEBUG
             fprintf(stderr, "~be_zmq_context()\n");
 #endif
-            error_sock->close();
-            delete error_sock;
+            if (error_sock) {
+                error_sock->close();
+                delete error_sock;
+            }
         }
 
         zmq::context_t* ctx;
@@ -202,8 +204,9 @@ PANTHEIOS_CALL(int) pantheios_be_zmq_logEntry(
     using namespace std;
 
     be_zmq_context* zctx = static_cast<be_zmq_context*>(beToken);
-    assert(zctx);
-    assert(zctx->error_sock);
+    //assert(zctx);
+    //assert(zctx->error_sock);
+    if (!zctx || !zctx->error_sock) return 0;
     stlsoft::lock_scope<mutex_type> lock(zctx->m_mx);
 
     zmq::message_t level_msg(20);
