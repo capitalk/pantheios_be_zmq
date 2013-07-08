@@ -177,9 +177,9 @@ pantheios_be_zmq_set_params(zmq::context_t* ctx, const char* addr)
     s_zctx->ctx = ctx;
     s_zctx->addr = addr;
     s_zctx->error_sock = new zmq::socket_t(*ctx, ZMQ_PUB);
-    s_zctx->error_sock->setsockopt(ZMQ_LINGER, &zero, sizeof(zero));
     assert(s_zctx->error_sock);
     s_zctx->error_sock->bind(addr);
+    s_zctx->error_sock->setsockopt(ZMQ_LINGER, &zero, sizeof(zero));
 
     return PANTHEIOS_INIT_RC_SUCCESS;
 }
@@ -189,6 +189,7 @@ PANTHEIOS_CALL(void) pantheios_be_zmq_uninit(void* /* token */)
 #ifdef DEBUG
     fprintf(stderr, "pantheios_be_zmq_UNinit()\n");
 #endif
+    s_zctx->error_sock->close();
     if (s_zctx != NULL) delete s_zctx;
 }
 
@@ -204,8 +205,10 @@ PANTHEIOS_CALL(int) pantheios_be_zmq_logEntry(
     using namespace std;
 
     be_zmq_context* zctx = static_cast<be_zmq_context*>(beToken);
-    //assert(zctx);
-    //assert(zctx->error_sock);
+#ifdef DEBUG
+    assert(zctx);
+    assert(zctx->error_sock);
+#endif
     if (!zctx || !zctx->error_sock) return 0;
     stlsoft::lock_scope<mutex_type> lock(zctx->m_mx);
 
@@ -246,7 +249,6 @@ PANTHEIOS_CALL(int) pantheios_be_zmq_logEntry(
     zmq::message_t error_txt_msg(cchEntry); 
     memcpy(error_txt_msg.data(), entry, cchEntry);
     zctx->error_sock->send(error_txt_msg, 0);
-
     return cchEntry;
 }
 

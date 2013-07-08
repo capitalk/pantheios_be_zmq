@@ -6,15 +6,15 @@ UTILS=$(COMMON)/src/c++
 UTILS_SRC=$(UTILS)/utils
 PROTO=./proto
 PANTHEIOS_ROOT=/opt/src/pantheios
-TESTS=./tests
+SRC=..
 
 INCLUDE= -I $(PANTHEIOS_ROOT)/include \
 		-I $(STLSOFT)/include \
 		-I $(UTILS)\
-		-I $(COMMON)
+		-I $(COMMON) \
+    -I ..
 
-LIBS= -L/usr/local/lib \
-		-lboost_date_time \
+LIBS= -lboost_date_time \
 		-lboost_program_options \
 		-lboost_filesystem \
 		-lzmq \
@@ -28,19 +28,14 @@ PANTHEIOS_LIBS= -L $(PANTHEIOS_ROOT)/lib \
         -l pantheios.1.core.gcc44.file64bit \
         -l pantheios.1.fe.N.gcc44.file64bit.debug \
         -l pantheios.1.util.gcc44.file64bit \
-		-l pantheios.1.be.N.gcc44.file64bit \
+	    	-l pantheios.1.be.N.gcc44.file64bit \
         -l pantheios.1.bec.file.gcc44.file64bit \
         -l pantheios.1.bec.fprintf.gcc44.file64bit \
         -l pantheios.1.util.gcc44.file64bit \
         -l pantheios.1.core.gcc44.file64bit 
 
-CFLAGS=-Wall -std=c++0x -pthread -O3 -ULOG -DNDEBUG
-#LDFLAGS=-static
-
-ifeq ($(dbg),1)
-        CFLAGS = -Wall -std=c++0x -pthread -DDEBUG -ggdb  -DLOG -pg -g
-		LDFLAGS =  -pg
-endif
+CFLAGS = -Wall -std=c++0x -pthread -DDEBUG -ggdb -O0  -DLOG -pg -g
+LDFLAGS =  -pg
 
 all: test_pantheios_be_zmq 
 
@@ -51,14 +46,12 @@ test_pantheios_be_zmq : test_pantheios_be_zmq.o pantheios_be_zmq.o $(PROTOBUF_OB
 test_pantheios_be_zmq.o: test_pantheios_be_zmq.cpp
 	$(CC) -c $(INCLUDE) $(CFLAGS) $<
 
-pantheios_be_zmq.o: pantheios_be_zmq.cpp
+pantheios_be_zmq.o: $(SRC)/pantheios_be_zmq.cpp
 	$(CC) -c $(INCLUDE) $(CFLAGS) $<
 
 clean :
-	rm -f *.o test_pantheios_be_zmq 
+	rm -f *.o test_pantheios_be_zmq  ../*.o
 
-install :
-	echo "No install available yet"
 
 .PHONY : pantheios_be_zmq 
 
